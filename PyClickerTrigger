@@ -196,6 +196,6 @@ while True:
     if chon == '3':
         os.system('cls')
         print("                                            \033[1;39mOpening PyClicker..")
-        os.system('Py/PYClicker.exe')
+        os.system('cd Py && PYClicker.exe')
     else:
         continue
