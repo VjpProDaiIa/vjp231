@@ -1,1 +1,364 @@
-print("INDEV")
+try:
+    import colorama
+    import json
+    import time
+    import threading
+    import keyboard
+    import sys
+    import os
+    import win32api
+    import pystyle
+    import time
+    from pystyle import Box, Center, Write, Colors, Colorate, Add
+    from ctypes import WinDLL
+    import numpy as np
+    from mss import mss as mss_module
+    from colorama import Fore, init
+    import ctypes
+    import random
+    import asyncio
+    import string
+except:
+    import os
+    os.system("pip install colorama & pip install json & pip install time & pip install threading & pip install keyboard && pip install sys && pip install pypiwin32")
+    os.system("pip install pystyle && pip install numpy && pip install mss && pip install ctypes && pip install random && pip install asyncio && pip install string")
+else:
+    init(autoreset=True)
+    os.system('cls' if os.name == 'nt' else 'clear')
+    SUCCESS = "\x1b[38;5;255m[\x1b[32m+\x1b[38;5;255m]"
+    taikhoan = """Logged in as \033[1;31m""" + keyauthapp.user_data.username """\033[1;39m. License expire after: \033[1;34m1e+99 \033[1;39mdays."""
+    whxyu = """
+
+                                      ______     _                       ____        __ 
+                                     /_  __/____(_)___ _____ ____  _____/ __ )____  / /_
+                                      / / / ___/ / __ `/ __ `/ _ \/ ___/ __  / __ \/ __/
+                                     / / / /  / / /_/ / /_/ /  __/ /  / /_/ / /_/ / /_  
+                                    /_/ /_/  /_/\__, /\__, /\___/_/  /_____/\____/\__/  
+                                               /____//____/                                           
+
+                                         This is a free product of MCC's Archive.
+                               Any attempt to exploit MCC Loader is a violation of the TOS.              
+    """
+    print(taikhoan)
+    print(Colorate.Horizontal(Colors.red_to_white, whxyu, 1))
+    print(f"{SUCCESS} \033[1;32mF10 \033[1;39mto enable trigger bot")
+    print(f"{SUCCESS} \033[1;32mK \033[1;39mmust be the primary keybind in \033[1;31mValorant")
+    print(f"{SUCCESS} Enemies color must be \033[1;35mPurple")
+    print(f"{SUCCESS} HotKey: \033[1;32mLAlt")
+    print(f"{SUCCESS} Trigger delays: \033[0;31mMax\033[1;39m(\033[0;31m10 \033[1;39mms)")
+
+
+    def exiting():
+        try:
+            exec(type((lambda: 0).__code__)(0, 0, 0, 0, 0, 0, b'\x053', (), (), (), '', '', 0, b''))
+        except:
+            try:
+                sys.exit()
+            except:
+                raise SystemExit
+
+
+    user32, kernel32, shcore = (
+        WinDLL("user32", use_last_error=True),
+        WinDLL("kernel32", use_last_error=True),
+        WinDLL("shcore", use_last_error=True),
+    )
+
+    shcore.SetProcessDpiAwareness(2)
+    WIDTH, HEIGHT = [user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)]
+
+    ZONE = 5
+    GRAB_ZONE = (
+        int(WIDTH / 2 - ZONE),
+        int(HEIGHT / 2 - ZONE),
+        int(WIDTH / 2 + ZONE),
+        int(HEIGHT / 2 + ZONE),
+    )
+
+
+    class triggerbot:
+        def __init__(self):
+            self.sct = mss_module()
+            self.triggerbot = False
+            self.triggerbot_toggle = True
+            self.exit_program = False
+            self.toggle_lock = threading.Lock()
+
+            # Configuration
+            self.config = {
+                "trigger_hotkey": "0xA4",  # LAlt key
+                "base_delay": 0.01,
+                "trigger_delay": 10,
+                "color_tolerance": 70,
+                "always_enabled": False
+            }
+
+            try:
+                self.trigger_hotkey = int(self.config["trigger_hotkey"], 16)
+                self.always_enabled = self.config["always_enabled"]
+                self.trigger_delay = self.config["trigger_delay"]
+                self.base_delay = self.config["base_delay"]
+                self.color_tolerance = self.config["color_tolerance"]
+                self.R, self.G, self.B = (250, 100, 250)  # purple
+            except:
+                exiting()
+
+        def cooldown(self):
+            time.sleep(0.1)
+            with self.toggle_lock:
+                self.triggerbot_toggle = True
+                kernel32.Beep(440, 75), kernel32.Beep(700, 100) if self.triggerbot else kernel32.Beep(440,
+                                                                                                      75), kernel32.Beep(
+                    200, 100)
+
+        def searcherino(self):
+            start_time = time.time()
+            img = np.array(self.sct.grab(GRAB_ZONE))
+
+            pmap = np.array(img)
+            pixels = pmap.reshape(-1, 4)
+            color_mask = (
+                    (pixels[:, 0] > self.R - self.color_tolerance) & (pixels[:, 0] < self.R + self.color_tolerance) &
+                    (pixels[:, 1] > self.G - self.color_tolerance) & (pixels[:, 1] < self.G + self.color_tolerance) &
+                    (pixels[:, 2] > self.B - self.color_tolerance) & (pixels[:, 2] < self.B + self.color_tolerance)
+            )
+            matching_pixels = pixels[color_mask]
+
+            if self.triggerbot and len(matching_pixels) > 0:
+                delay_percentage = self.trigger_delay / 100.0
+
+                actual_delay = self.base_delay + self.base_delay * delay_percentage
+
+                time.sleep(actual_delay)
+                keyboard.press_and_release('k')
+                end_time = time.time()
+                print(f"{SUCCESS} Fired in:", int((end_time - start_time) * 1000), "ms")
+                asyncio.sleep(1)
+                print("\033[F\033[K", end="", flush=True)
+
+        def toggle(self):
+            if keyboard.is_pressed("f10"):
+                with self.toggle_lock:
+                    if self.triggerbot_toggle:
+                        self.triggerbot = not self.triggerbot
+                        print(self.triggerbot)
+                        self.triggerbot_toggle = False
+                        threading.Thread(target=self.cooldown).start()
+
+                if keyboard.is_pressed("ctrl+shift+x"):  # Check for the kkkkk keybind
+                    self.exit_program = True
+                    exiting()
+
+        def hold(self):
+            while True:
+                while win32api.GetAsyncKeyState(self.trigger_hotkey) < 0:
+                    self.triggerbot = True
+                    self.searcherino()
+                else:
+                    time.sleep(0.1)
+                if keyboard.is_pressed("ctrl+shift+x"):  # Check for the exit keybind
+                    self.exit_program = True
+                    exiting()
+
+        def starterino(self):
+            while not self.exit_program:  # Keep running until the exit_program flag is True
+                if self.always_enabled == True:
+                    self.toggle()
+                    self.searcherino() if self.triggerbot else time.sleep(0.1)
+                else:
+                    self.hold()
+
+        def titlespoof(self):
+            title = "Sản phẩm này là bản trả phí của Vũ Nguyễn(nguboiz). Mọi hành vi leak/share trigger bot sẽ bị ban vĩnh viến HWID khỏi hệ thống!"
+
+            def generate_glitched_title(title):
+                valid_characters = string.ascii_letters + string.digits + string.punctuation + ' '
+                glitched_title = ''.join(random.choice(valid_characters) for _ in title)
+                return glitched_title
+
+            while True:
+                glitched_title = generate_glitched_title(title)
+                ctypes.windll.kernel32.SetConsoleTitleW(glitched_title)
+                time.sleep(0.03)
+
+
+    bot_instance = triggerbot()
+    threading.Thread(target=bot_instance.starterino).start()
+    threading.Thread(target=bot_instance.titlespoof).start()
+
+    # 1e72e5b0dd7609bd9a0ee6272befe8eb147dfbb22a8cff2b431e085b01714925
+    # 017f82a410ce9af2b4e0ac9f8576c17d4c99ef0125d881918fad941eb1b87aff
+    # a72cf292dd3adc0ac60ee5dba15bafc5de8cacbbb5e2d9a1bf15fec07f5fe8b4
+    # efe010657f01cd82216af06f0644b088369a797c4eae054835523b207f5b1adf
+#d1ba0b179989917762631c96d8831609a253500db0d924af211b8fb0a75577c8
+#56dfe54efc80b718d3a6579a552cae8af65217089744ce39210fe866198a2015
+#e3feaf49ecb7260c7ca5b434ad510b8e7b9cb10dee07202afa76acbce2449bcc
+#8acd97661e4b9ae1546727de534a00080de85f15297428294833747c334b4828
+#4e91f19b001953af24fa8e795f7fa018d278de7d88e6f7757d0db86bd445e3e2
+#280763d4bfb9645c970b8c469b3cb180605af3eddd0c9f2fd797e10d6967f96f
+#381c3b4ea40a5f9dac9fa5a95f299f7944f751c8ecbe7408fe0dbb3461e8d16e
+#d671ead589a6e5bbad5cb99f2f8897819358e484a2cdcb9feac3317af1ace34c
+#458ba24c978c044763b47936e08d711b8e389cefc16add57766d8d6cfee81754
+#3157f64761d957552397c9f6ad7be054004632d8e4bcfcde9679ba4c07cfa4ef
+#716d98ebb323fde7cf68da724b3f011890cc594de6426974d87776f9f2e78a96
+#256a2a059a82d4ebde489ff3d284d19a9d85f5ee082a080009b102250e412a93
+#c8e7f52d2be335a420c64b154648e7e947fa36d990532c03159454a288c9c4ef
+#94aa17d1d27c8ba36603e28f67f77c1e5a781fa9baf4623d36cd3961f776b6f4
+#42a7def713275ed76ea8bffafce080b17b181e44291f4a11e77229a37bcc5fbb
+#238ffb69e87a954ad767bfa20ba8855a1904dc0f155b298857021a55ceb8da60
+#cdb29b73a9bc5983eb1f5db57eb89b25236ab06ffea29ad5d1d13db98ab42108
+#c16282f31f5321642b8b041d416db2f9b61807467e2b3a9f22e08d3c65998d15
+#59f1ce563d8928dd68905b228c0e1c4dc2aaa444a5f6edefd0e2887c6ee42e32
+#8fc940f518f802b05475108d81eb1fafe5b50d8f491669c76d3e7ce8e9a1ff9f
+#562e320e0c17c4873c4fdb2a8aa14feba9f964229fa402e3e9747594927901ba
+#9ba560961a34e7b5cf24c9aae298cd2e35a5e4bb7f2c41714b5f556dfb40f26c
+#a0b4869c5e1896e52fe5290a9c0b0954cc9683ad6e016c4bfa8918b3b979c0a0
+#02d0940874ec14f8e6ec0f61866cefb8f0e675c2959c532cecee501eee24dd14
+#fb13882fa92ff3b6fa32e84b268c2a8e5ee149e6f053d4bef60163d3b8271d4a
+#a36d138c884016f5525c8c8c79a42cdb8bfc0781a85a1875a93f3c9f7fb039fe
+#b310c8d48aab401418a0b80178bae715643ab41cd930a80793bea63552295024
+#205326e13eacc4d2f8ecb56e6afda3f9786673fcec92461abefd4f2d7f77adbc
+#26a34758577862a4f90d74b000a614a015f6cd029ace03f9589cd7fc9881314b
+#b2cb9424f71b817b451fa0cbcd501f30cd1142c3024b9c52e28ac651759729c8
+#68de12b90ed60a42b65625c0f2ddad51a642627e0eb05730710ff8b1dfbf7b2c
+#5b1b96b703d8b6f05468ee24e85123d4dca2a7eda9094616096affab880e498e
+#3d131672477f5d6cb758847392038ed085e3143304f1f6bd5c5369a6162bc9a6
+#f7a5e82b98ba65b7246ef97dbe7a20b4794227c5ae78630d42df43b18ac597fb
+#89da825e9af71e6402528e6ee6db9f11a35cb5041b788c43edd97e3476c6f050
+#3ce60048b6c7ab263861eba8eb8f4e5846ca9756f7b4155497598cadd2f7d523
+#7512dd5375d2ef55db46d26401e4554062d3053463b63cee21675975cecb892b
+#17ce256091f73e8785a7e4161a4e4cfba91eb8657ddea60ded7453ba66dd86bc
+#d23f2d4936cea156d84005aaabb6430bb05fe0d4a2fa61ae54665cc2b38abf36
+#cfa294ce52569936ddbe7fd065734162701db9111d59ac9c3d1a93d9b9152433
+#3c50d1908d7dda9bc59cecbbc7748258ea2c07770a900f8e2a0bf95d5ec47982
+#46855df3463309c6bd3faf1d473c4fd7eb14f73d6115318838524f2c76f4a65a
+#d95f3779efa3377db86de66851af43b471a71acf4890f8fdc20e68eac4146274
+#766f0cee73e1e45045aca43403a36c2e992fb21f2b6c4715393c66bd031da7af
+#beea36caac4bd84005fc42790003af25d430625fef24acc50d37c99001442898
+#adb2368d24c01e865027803681115a3752ed8678c059c8da094e19141e3bef66
+#577618299b2673a0505992ccac9bb4bd5c31230e887f309a3f07711ec20e4b08
+#e6475861980ebd8d7e86dedf853cd133188dd72c850a56db749bfca973ecbdbc
+#1932ac8bf9f7ea9cc3349525c5e13bb94c9c74def60c757f59353f14ad6316a8
+#c48503d0023be5dce1e9bbc74ecbe0d4fafc553f41ab6cb9709b5877ac9fb186
+#0e6d1daba778504fe336e1632e809b32957d206d2d1289c33f4882aac15f5bb2
+#695fec02656b29038aea3a89a0fb043103cd8005aaaed40e9a5833a40f3746af
+#5e54e10fb69c318a6731d85c73844d707a1358998f94b9c0d3d2668bcb5b0c99
+#5dbbcef1a4216761bf5baaf4121ac65edd3479d0f0d950fbaf35e8e3b8d1c45d
+#763143c97d0dd37c8d63710e4af691379a434eb9d4f6d80949876121c765d676
+#c8d5679836119f640b37ac6904334b169496ed1b4d58549a9e03b3cc0ce6453a
+#dda819ae4b2fefd3a1ab602d5f43e61a0708941fbbd9f4a47b0e237c469595cf
+#93765924237cb55f95643d44620e78097c6887447d8365f3115afd22cdfaf551
+#08ba34904880c7ebb979790e71856ff712810521232dba1f9297425f5a3d913e
+#5bf75ee533860b2c060b8e56fbb40cb79a8dc9d98469cdffb9ae6b879ad25fce
+#c45824014bbfec140fa7ede954a2ea11e3542a0196459039c176ced50bc02af6
+#46401e81d170d6a5c6293c915e005a816038e9f905cb2c4bf0f14d8b094c6ce5
+#102c1c9c149b9044dcc86761d89915a20a2ac347252fead4d7530d4ce401631f
+#5556a59020d0200e0ce88fca84a8bb92cb3dc358d1c8595324e82d6bd95c5563
+#037b590e0fa8350e2b07fe3aac5a99fc6c25bbd1649904c0093c6e3a13bf6c64
+#0ba0b0389cb6280ddd0dc95ee7168ea5e476430b0f8ca3ba9a20d63a0fdf0e2a
+#74ea0e5d3eaeb78f151c695a62461150240e015760074fdaa52437ea572cb6ee
+#a4034584987fdf7c3f83fdd05ebd77cd49eac81353bfa577aa767da6b9d50bdf
+#bc51a6b4c66a7566a01c731627582be6dc92fb08e237d19734fc3a4b68774db3
+#b414993c170f2b52e012ea78ded3c78216e5b873bcc0ffff932e63ac9793a0f5
+#8d80e61b5d8690b930698d0f909ade72e3d3874a56a60a3401e3b865afb8c119
+#ba7259dc675cda47588281817d191202070627eb1f1486a2f84f963580318dc0
+#3cc7949553f2fb053b3b7f147fe393c0a158774881bc27a74338118a3a34a868
+#c5cbd62d0c9b8bdea2cf32f7132245c545e1afa84553bb7401a318d529a750cc
+#d9e829edbbc3eea705473ad163f9e32f52c558159445b028c8dd91f913eeeece
+#c5521255da1935e5e4e8713e2b3c691ef0e639f9e881031afc137cb8a310a324
+#f02232c42b17053cc53e86105bd7d3b08a8f62fbacd5931ee1c8ad662cfc4924
+#ae210da38f8397144bfd6810cb77d071fb160d4e940db153ed23a8652f66d2df
+#413cc8926238010349021c124d0e11fba0d69789694b01f8c0c3c26bbba412e7
+#41f3eca6f621291e297320198c8ed12771edbbe55c23ce92441810644e4c7506
+#7372f117b59dfb32079c62b349138af9f07d6fdda3896cdfbf829fb25eb2b0d6
+#11b21126d5f18f9dc210baeffb104a53baf71371457cddb548e58da4f5d43162
+#751462a2748d22fed42e22e61a48308284d13744cf17a365d1b6458dbb46a93d
+#deb7622894b51936f70935730de946fc62ce0b2a2b1d49174efa92274c4131ea
+#344f8f132a465178ef83a45ae894ba02616ca86ae6596e69f4eb6f24d1373424
+#7e55c613091c3974310bcd09a00a38368f5fe2e6507f95fa64eb731578cc218f
+#a59822cc5bcaf5cee87e4e14469015e4958ce1cb84b063b3cdc989a442d3a87b
+#16b673f1b70c065666c4c199586997e2f8601082499e6b1534ff41ceac3282f9
+#d530a353643ee1013c02e7db25cb778066a3040ec5cce7b29a1f4b736adde0d9
+#e4e11c7e1e3cf785cdad3f6968bb064511ca0bac9b7f2e1491e8637fe974c2ec
+#46b0557c700df4d7c43cc3c1985a0e38468727a88ce8f43533471b07058d67ac
+#cf0b712a935019deab1e0036533e4d6e12316f544fce90b307dc3210a5aa409a
+#6e1822e30c43906c5c1f9aa929761fdd3f415302203f0d2dffcc9f2e3cc89800
+#7ac6f6de606b75b6e7b9e9af392344063212c39ca6374f18e84ff0ee2f303d1e
+#9922cd5ef59903fca9435a7386bff77d34774f779905b74a129f57f84307ff68
+#9000ecf7d2fb500b32fc4a3d1f0a7fccc3de22038d95e42d3c3605b7053453b9
+#2580e203ea282b0740e888eb53cae6ca16d7230aa9a3ebdeab171e5c84a9d793
+#db07a3f26b5b80d435e7e54c55966803aa1913f7b5cb2afb08f9617484493fe5
+#536af66e407985d59321e278bbf8b70bcb0a70355202c2de8a2de55f6310816d
+#645cf67df44763feae62ea7a72f8445a749b759a16b29d8e79a72d827fdeda50
+#4f105c78c2e4926a54259dbbe613bea647015db4b122795d8e13f7b006db8a99
+#38ea04a566f86a302f5bb53483e2b79704b76aad5392005d973a16837f3022da
+#d1f201da98117a5999da41d8ec093acb95071fc9b99fa0545ab9673c2c7610c7
+#1fbcf52b5f814d3aac600196925c3f59f547b0eaea48fffc3770108a659b103c
+#578f91f0d9839663293d44f88b3ab5f9a8fe738cc21f82740deb11f4b9b003ed
+#aa02516d45f4b458fed6e2523ed8d33c069d398d1870c76f7f2aaa062645ec67
+#a7f96813f5b69c9598db74c3bd1bbf907de69878d9773dacfc0563f57b7a3927
+#f10c247fdf4b3ecabb8a3af00268d6de3f161a6ec6adab3469e58810d8595b24
+#4ad8a882cc83f1361c3650a7f90837a4bb64454a45960982f993a198284a9cdb
+#59434471c9ebcabdbcafb8a2319404231128d2c94d3b3ee2aedbc549ff73a1be
+#cf851ccafb56a34cb075c337eb064297e11cab65d7806ee1ecff8225a12e571a
+#f610b501ee7705f9301ed4220581e446d0fee57306fcc710667e2e8a26b0b308
+#0f690eb16f3c8762942029c1413997b5f95680c64ca0a26c08e962000a416a9f
+#47fb62aab089554975f35534d272d8c690526c1c2a09209c7baec47447aaa2aa
+#0b28fe171ebbec2f0405596e598687dcdedead3d6de82c42bdbcbbb560c97bad
+#cffb0f0c1502feab31847018a9bf60a87acbc7f9e1a2c249c98104e80e49debf
+#d5da81fd55be5a47fa54ba2ff6df3c647c03919f44688e502dc0000f4a4f1ec1
+#babdbfcc1429ce098a5e00d539382c663a6cde5d3e803e6bc38c089b801fede9
+#6814afd25535c9057648de23a95ac674f51f51ff0b7557928149b94e8db989c4
+#443dd6e29a6c363aed33a72da66a3818dc0093d4cd8027ef3e9a8afaa238294b
+#393eae9274d0d7f6822caf9b6db41f294f550394057d99286dbf5c0f4d17d65e
+#e1e5a246b48d2490a64af28a3ed34185c367121bc6828bddf7978bfecde25b2d
+#69ad66e456cc993b9e865fbc84ed0806ed3bb5c5c4172c2a98dbdf46d73a14bf
+#3ef0ea16d94783c5c93666630489db37d0c4f3be193ae1dff6864e1649eac3d0
+#002880fde9c80aa15b1e406031ed326a3cf6096f6575926f38d05fecb78e264c
+#03713e4a1a0e6c4e21ffc4e49b78ebe7476be8aceb2b9b108c73f136138c7b5c
+#80e48a3241ff0b6acd116842361928d2a3beeeec5c693f26eba5ea693a7c3ab1
+#da310cc9b464fe226a4ea62be4a46d62d93ac0e4fe01d1a79eb834d197de9591
+#b856a5e0f834dd4969c271aae434ee1324e70ca338942dec5bcf1d6d0125ecf2
+#a6eadea00c43b2fb46f679de6de856b9761de1b8624284f03a885e0625583e0e
+#1c9e684e49617e07c1e00faadede1346e6ea0cd8910a0ad0765a31f20765460f
+#43e4ceab9c8106dd8ae5dfcc576d684d403c8adc553450f3fc7c81e05c0253e8
+#903a347a324c8c35bcf49a8889fc4900206cbb1c73e406ddf9c11926b9dbb5f5
+#a4edd126bb3196ee5c1757d82e699b10b06d2e2f9f8acd65d6ea28724ca6cc2d
+#fbbe141efbc40428f768ad271fa259e36f5983a5217744c29b23b918ac26892c
+#83eef6646ead0a222e0ae9e11f9c0c473039087e3386933348c4a2729077adec
+#ee1c3c4566e84bd3571a11cb7d69084e7b953b55a9285ec63f5c7c5db730770d
+#42a710779a2c6a43c7d0aaa0f17a1b2d7bf15398189966dc4b89169c54c9378d
+#1506eae404d703aaf54e493be5662b12712fd614c215b89d05c944457f6b2da9
+#a7c4c8ce295fb5cde7895bf4972ee3cb72a9aa86b589c94d0c886bb083447f1d
+#ee231b4c87a0bff1849ee5172e8440137a32870819dcf71be9261cfd451e8b92
+#d0f7b2fdfd28e1ece8e3b29f6c914a070fc1fa10b493c7450f8133096c289642
+#cda8737f00c2d961765dc55978ea346a5290f32ff7d0fea63ddb6416aa108d94
+#5ea02130c268395b389b6226bde93b47678686cacd05740870ef098bb9c9252b
+#fd020ff6d71b154526935641a3775c78f3eaad93a253e1ef3a9965815b5f84db
+#d32a4242754f85b01a9ad1b0b8587d8b6bf9458677e786acafd3a0b0df557cad
+#34a2a1ad3de5867802a88de331c8d89ed881e2343a49eb99ee3d532001124dd2
+#75fb873ac481c6a7cdaeb4ada589df7c9b7bf04cc2ee29c1b52ea9c6be7ee547
+#f026e0d59727f2c31c72f8cda4c0ae4caba86ac0c9cd540ed205cd7e91abb194
+#5760087ed74283282697586d5418ed137a97cfc752dd2bf9e899a7f75c9440b3
+#f585fc94ab538353bdd5ffd0fec29f56b5423386e6bbc48afa6349386760358a
+#1f659f903bdb395e5d073757a6bd1f2ef122d15b8788e7f9120b5de7713ede7a
+#bca659175df2ea8960a0958aae88caae5448e4a5db2a8312e32a5f270a2791ba
+#27590cfd9df7f966afb01e7c9be26b0ea18ee8de6ae814be3861cb960413c549
+#860f17f1f0471bde16ff39434d7ed040e242f14f1c0c2b750c1f8411e467da5e
+#8b02c3e497f19e8efc90be0f163c21c16717c654cc9c06259b677d6bf7403aa8
+#6f1affd802346a144b651a97640c820ddc97cb49a2911027c3cd1d0bd6e4726c
+#9f12a1f57b9ae558dc036586655249fede72578c23701dc32a5d7525d1c9a0ed
+#31b4286cc5fad65650f2a75a4dde9311a9be919b2b4f47f253cf7db8b252c142
+#2eba4ea0278dd167532700b3fae7c069c2ecfe493935b807049a3b477a94aa00
+#c4958905392156d5642b649a7aaf51da6e7d69ac26c4f0f06a170bb77cc69615
+#14f638692c34e9ad2b70d8680121b0566bf2842ff63e734d2903f91ef3953a41
+#bc046ded6a684dececbbe3c4fb57587c861152fc8f88be14d7eb1dcad8ec77c2
+#a5837dc7bbf0d40f61dfc73a7d399f75c0c3a88856cbdd0e746623057d967d78
+#e2985e911fe4f1132bc2ae5cf7d35a28ac4fb3721921e2badea0b36d005259b3
+#2543b541e76e7cc7246ccbe203e4db3f705352f955f7e4f39d4bd24382a2f9cd
+#d4e1b3d5511c50e3822bd9d5b5023eccec25d80107701011eeb3def17a1fa4a1
+#29877fb4c7cd1d00da63817688ddfdbfb60a3a5d1edf482cb3d707b935bdf587
+#4141387ec3390e01a546132875e97903e7e4ad764d113da5e572cf4a002d7929
+#5bd34f2ac8a73bca4b1ead3d013fc434100db2ca19164ad9d24d02ba45e02a17
+#999eeeb9f0e86034a5330283e40ae2a8cfbcbc749ae55b66ec906a11b64e6e7b
+#bfe1da52ab4e90922c87e69a2e75a11bfe5e15478193b850f78aff5f9b5c7452
