@@ -35,7 +35,7 @@ def acutal():
             print("\033[1;39m[\033[0;31mMCC Loader\033[1;39m] \033[1;39mError.")
     else:
         SUCCESS = "\x1b[38;5;255m[\x1b[32m+\x1b[38;5;255m]"
-        taikhoan = """Logged in as""" + keyauthapp.user_data.username + "."
+        taikhoan = """Logged in as \033[1;34m""" + keyauthapp.user_data.username + "\033[1;39m."
         whxyu = """
 
                                            ______     _                       ____        __ 
@@ -54,7 +54,7 @@ def acutal():
         print(f"{SUCCESS} \033[1;32mK \033[1;39mmust be Fire primary bind in \033[1;31mValorant")
         print(f"{SUCCESS} Enemies color must be \033[1;35mPurple")
         print(f"{SUCCESS} HotKey: \033[1;32mLAlt")
-        print(f"{SUCCESS} Trigger delays: \033[0;31mMax\033[1;39m(\033[0;31m10 \033[1;39mms)")
+        print(f"{SUCCESS} Trigger delays: \033[0;31mRandomization\033[1;39m(\033[0;31m10-31 \033[1;39mticks)")
 
         def exiting():
             try:
