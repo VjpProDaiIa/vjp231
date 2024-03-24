@@ -1,38 +1,3 @@
-import sys
-import time
-from time import sleep, strftime
-from datetime import datetime
-import threading
-import subprocess
-import webbrowser, os, re, json, random
-import msvcrt
-from os.path import isfile
-import ctypes
-from faker import Faker
-from requests import session
-from colorama import Fore, Style
-import requests, random, re
-from random import choice, randint, shuffle
-import requests, pystyle
-from pystyle import Write, Colors
-from subprocess import Popen
-from keyauth import api
-import platform
-import hashlib
-import json as jsond
-import os
-from pystyle import Add, Center, Anime, Colors, Colorate, Write, System
-import urllib.request
-import io
-import colorama
-import json, time, threading, keyboard,sys
-import win32api
-from ctypes import WinDLL
-import numpy as np
-from mss import mss as mss_module
-import pystyle
-from pystyle import Box, Center, Write, Colors, Colorate, Add
-from colorama import Fore, init
 os.system('cls')
 def acutal():
     try:
@@ -63,8 +28,7 @@ def acutal():
         subs = keyauthapp.user_data.subscriptions  # Get all Subscription names, expiry, and timeleft
         for i in range(len(subs)):
             sub = subs[i]["subscription"]  # Subscription from every Sub
-            expiry = datetime.utcfromtimestamp(int(subs[i]["expiry"])).strftime(
-                '%Y-%m-%d %H:%M:%S')  # Expiry date from every Sub
+            expiry = datetime.utcfromtimestamp(int(subs[i]["expiry"])).strftime('%Y-%m-%d %H:%M:%S')  # Expiry date from every Sub
             timeleft = subs[i]["timeleft"]  # Timeleft from every Sub
         whxyu = """
 
